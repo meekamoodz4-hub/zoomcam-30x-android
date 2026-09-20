@@ -1,0 +1,43 @@
+name: Build ZoomCam 30X APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Get source code
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Create web folder
+        run: |
+          mkdir -p www
+          printf '%s\n' '<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"></head><body>Loading ZoomCam 30X...</body></html>' > www/index.html
+
+      - name: Install packages
+        run: npm install
+
+      - name: Create Android project
+        run: npx cap add android
+
+      - name: Build APK
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: zoomcam-30x-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
